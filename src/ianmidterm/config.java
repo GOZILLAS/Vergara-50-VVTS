@@ -1,5 +1,6 @@
 package ianmidterm;
 
+import java.sql.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -12,8 +13,8 @@ public class config {
 public static Connection connectDB() {
         Connection con = null;
         try {
-            Class.forName("org.sqlite.JDBC"); // Load the SQLite JDBC driver
-            con = DriverManager.getConnection("jdbc:sqlite:ianmidterm.db"); // Establish connection
+            Class.forName("org.sqlite.JDBC"); 
+            con = DriverManager.getConnection("jdbc:sqlite:ianmidterm.db"); 
             System.out.println("Connection Successful");
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println("Connection Failed: " + e);
@@ -153,39 +154,49 @@ public static Connection connectDB() {
     //-----------------------------------------------
     //ADDED THINGS ON CONFIG PARA SA VIEWREPORTS NI
     //-----------------------------------------------   
-    
-    
- public void viewRecord(String query, String[] headers, String[] columns, int id) {
-    try (Connection conn = config.connectDB();
-         PreparedStatement stmt = conn.prepareStatement(query)) {
-        stmt.setInt(1, id);  // Set the Driver ID parameter in the SQL query
-        ResultSet rs = stmt.executeQuery();
-
-        // Print headers with aligned columns
-        StringBuilder headerLine = new StringBuilder();
-        for (String header : headers) {
-            headerLine.append(String.format("%-20s", header));  // Adjust padding as needed
-        }
-        System.out.println(headerLine.toString());
-        System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-
-        // Print values for each column if a record is found
-        if (rs.next()) {
-            StringBuilder row = new StringBuilder();
-            for (String column : columns) {
-                String value = rs.getString(column);
-                row.append(String.format("%-20s", value != null ? value : ""));  // Align values
-                
-            }
-            System.out.println(row.toString());
-        } else {
-            System.out.println("No details found for Driver ID: " + id);
-        }
-
+    public Connection getConnection() {
+    try {
+        String url = "jdbc:mysql://localhost:3306/your_database_name"; // Replace with your DB URL
+        String user = "your_username"; // Replace with your DB username
+        String password = "your_password"; // Replace with your DB password
+        return DriverManager.getConnection(url, user, password);
     } catch (SQLException e) {
-        System.out.println("Database error: " + e.getMessage());
+        e.printStackTrace();
+        return null;
     }
 }
 
+    public void viewRecords(String violationQry, String[] violationHdrs, String[] violationClmns, int driverId) {
+    try (Connection conn = config.connectDB();
+         PreparedStatement stmt = conn.prepareStatement(violationQry)) {
+
+        stmt.setInt(1, driverId);
+        ResultSet rs = stmt.executeQuery();
+
+        StringBuilder headerLine = new StringBuilder();
+        for (String header : violationHdrs) {
+            headerLine.append(String.format("%-20s", header));  
+        }
+        System.out.println(headerLine.toString());
+        System.out.println("------------------------------------------------------------------");
+        
+        while (rs.next()) {
+            StringBuilder row = new StringBuilder();
+            for (String column : violationClmns) {
+                String value = rs.getString(column);
+                row.append(String.format("%-20s", value != null ? value : ""));
+            }
+            System.out.println(row.toString());
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Error retrieving records: " + e.getMessage());
+    }
+}
+
+
+
+
+    
     
 }
