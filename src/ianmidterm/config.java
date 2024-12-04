@@ -9,13 +9,11 @@ import java.sql.SQLException;
 
 
 public class config {
-      //Connection Method to SQLITE
 public static Connection connectDB() {
         Connection con = null;
         try {
             Class.forName("org.sqlite.JDBC"); 
             con = DriverManager.getConnection("jdbc:sqlite:ianmidterm.db"); 
-            System.out.println("Connection Successful");
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println("Connection Failed: " + e);
         }
@@ -178,7 +176,7 @@ public static Connection connectDB() {
             headerLine.append(String.format("%-20s", header));  
         }
         System.out.println(headerLine.toString());
-        System.out.println("------------------------------------------------------------------");
+        System.out.println("----------------------------------------------------------------------------------------------------------");
         
         while (rs.next()) {
             StringBuilder row = new StringBuilder();

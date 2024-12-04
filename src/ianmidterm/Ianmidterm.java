@@ -12,10 +12,12 @@ public static void main(String[] args) {
         String response = "yes"; 
 
         while (response.equalsIgnoreCase("yes")) {
+            System.out.println("=====================================");
             System.out.println("1. DRIVER");
             System.out.println("2. VIOLATION");
             System.out.println("3. REPORT");
             System.out.println("4. EXIT");
+              System.out.println("=====================================");
 
             System.out.print("Enter Action: ");
             int action = 0;

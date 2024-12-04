@@ -71,22 +71,27 @@ public class Violation {
     }
     
     public void addViolation() {
-        Scanner sc = new Scanner(System.in);
-        config conf = new config();
+    Scanner sc = new Scanner(System.in);
+    config conf = new config();
 
     int did = 0;
     while (true) {
-        System.out.print("Enter Driver ID: ");
-        did = sc.nextInt();
-        
-        if (isDriverIdExists(did)) {
-            break;  
-        } else {
-            System.out.println("ID doesn't exist. Please Enter again.");
+        try {
+            System.out.print("Enter Driver ID: ");
+            did = sc.nextInt();
+            if (isDriverIdExists(did)) {
+                break;  
+            } else {
+                System.out.println("ID doesn't exist. Please Enter again.");
+            }
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input. Please enter a numeric Driver ID.");
+            sc.next(); 
         }
     }
 
-        System.out.println(
+    System.out.println(
+    "==========================================================\n" +   
         "1. Speeding\n" +
         "2. Counterflowing\n" +
         "3. Running a Red Light\n" +
@@ -97,62 +102,93 @@ public class Violation {
         "8. Use of Mobile Devices While Driving\n" +
         "9. Obstruction\n" +
         "10. Driving an Unregistered Vehicle\n" +
-        "11. Emissions Violations"
+        "11. Emissions Violations\n" +
+    "==========================================================\n"
     );
 
-    System.out.print("Violation ID: ");
     int lid = -1;
     while (lid < 1 || lid > 11) {
-        if (sc.hasNextInt()) {
+        try {
+            System.out.print("Choose Violation: ");
             lid = sc.nextInt();
             if (lid < 1 || lid > 11) {
-                System.out.print("Choose one from the Display above. Try again: ");
+                System.out.println("Choose one from the options above. Try again.");
             }
-        } else {
-            System.out.print("Invalid input. Enter a Violation ID: ");
-            sc.next();
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input. Enter a numeric Violation ID.");
+            sc.next(); 
         }
     }
     sc.nextLine();
 
-    System.out.print("Violation Fine: ");
-    String vfine = sc.nextLine();
-    while (!vfine.matches("\\d+(\\.\\d{1,2})?")) {
-        System.out.print("Invalid Input. Enter a valid fine (100, 100.00):");
-        vfine = sc.nextLine();
+    String vfine;
+    while (true) {
+        try {
+            System.out.print("Violation Fine: ");
+            vfine = sc.nextLine();
+            if (!vfine.matches("\\d+(\\.\\d{1,2})?")) {
+                throw new IllegalArgumentException("Invalid fine format. Use numeric values (e.g., 100, 100.00).");
+            }
+            break;  
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
-    System.out.print("Enter the Date(Year-Month-Day): ");
-    String vdate = sc.nextLine();
-    while (!vdate.matches("\\d{4}-\\d{2}-\\d{2}")) {
-        System.out.print("Invalid Format. 0000-00-00: ");
-        vdate = sc.nextLine();
+    String vdate;
+    while (true) {
+        try {
+            System.out.print("Enter the Date (Year-Month-Day): ");
+            vdate = sc.nextLine();
+            if (!vdate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                throw new IllegalArgumentException("Invalid date format. Use YYYY-MM-DD.");
+            }
+            break;  
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
-    System.out.print("Enter Status: ");
-    String vstatus = sc.nextLine().trim();
-    while (!vstatus.equalsIgnoreCase("Pending") && !vstatus.equalsIgnoreCase("Paid")) {
-        System.out.print("Invalid. Enter 'Pending' or 'Paid':");
-        vstatus = sc.nextLine().trim();
+    String vstatus;
+    while (true) {
+        try {
+            System.out.print("Enter Status: ");
+            vstatus = sc.nextLine().trim();
+            if (!vstatus.equalsIgnoreCase("Pending") && !vstatus.equalsIgnoreCase("Paid")) {
+                throw new IllegalArgumentException("Invalid status. Enter 'Pending' or 'Paid'.");
+            }
+            break;  
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
-    String sql = "INSERT INTO violate (d_id, l_id, v_fine, v_date, v_status) VALUES (?, ?, ?, ?, ?)";
-    conf.addRecord(sql, did, lid, vfine, vdate, vstatus);
+    try {
+        String sql = "INSERT INTO violate (d_id, l_id, v_fine, v_date, v_status) VALUES (?, ?, ?, ?, ?)";
+        conf.addRecord(sql, did, lid, vfine, vdate, vstatus);
+        System.out.println("Violation added successfully!");
+    } catch (Exception e) {
+        System.out.println("Error adding violation: " + e.getMessage());
+    }
 }
 
     
-    public void viewViolation() {
-        String qry = "SELECT v.v_id, v.d_id, l.l_name, v.v_fine, v.v_date, v.v_status, d.d_lname " +
-                     "FROM violate v " +
-                     "JOIN law l ON v.l_id = l.l_id " +
-                     "JOIN cvts d ON v.d_id = d.d_id";
+   public void viewViolation() {
+    String qry = "SELECT v.v_id, v.d_id, l.l_name, v.v_fine, v.v_date, v.v_status, d.d_lname " +
+                 "FROM violate v " +
+                 "JOIN law l ON v.l_id = l.l_id " +
+                 "JOIN cvts d ON v.d_id = d.d_id";
 
-        String[] hdrs = {"Violator-ID", "Driver-ID", "Violation", "Fine", "Date", "Status", "Driver Last Name"};
-        String[] clmns = {"v_id", "d_id", "l_name", "v_fine", "v_date", "v_status", "d_lname"};
+    String[] hdrs = {"Violator-ID", "Driver-ID", "Violation", "Fine", "Date", "Status", "Driver Last Name"};
+    String[] clmns = {"v_id", "d_id", "l_name", "v_fine", "v_date", "v_status", "d_lname"};
 
-        config conf = new config();
+    config conf = new config();
+    try {
         conf.viewRecords(qry, hdrs, clmns);
+    } catch (Exception e) {
+        System.out.println("Error retrieving violations: " + e.getMessage());
     }
+}
 
     
     public void updateViolation() {
@@ -161,14 +197,19 @@ public class Violation {
     
     int vid = -1;
     while (true) {
-        System.out.print("");
-        vid = sc.nextInt();
-        sc.nextLine();  
-        
-        if (isViolatorIdExists(vid)) {
-            break; 
-        } else {
-            System.out.println("Violation ID does not exist. Please Try Again");
+        try {
+            System.out.print("");
+            vid = sc.nextInt();
+            sc.nextLine();  
+
+            if (isViolatorIdExists(vid)) {
+                break; 
+            } else {
+                System.out.println("Violation ID doens't exist. Please Try Again" );
+            }
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input. Please Try again ");
+            sc.next(); 
         }
     }
 
@@ -185,7 +226,7 @@ public class Violation {
             sc.next(); 
         }
     }
-    sc.nextLine(); 
+    
     
     String nStatus = "";
     while (!nStatus.equalsIgnoreCase("Pending") && !nStatus.equalsIgnoreCase("Paid")) {
@@ -221,62 +262,69 @@ public class Violation {
         }
     }
 
-    
     public void deleteViolation() {
-        Scanner sc = new Scanner(System.in);
-
+    Scanner sc = new Scanner(System.in);
     int vid = -1;
+
     while (true) {
-        System.out.print("Enter Violation ID to delete: ");
-        vid = sc.nextInt();
-        sc.nextLine(); 
-        if (isViolationsIdExists(vid)) {
-            break; 
-        } else {
-            System.out.println("Violation ID does not exist. Please try again with a valid ID.");
+        try {
+            System.out.print("Enter Violation ID to delete: ");
+            vid = sc.nextInt();
+            sc.nextLine();  
+            if (isViolationsIdExists(vid)) {
+                break;
+            } else {
+                System.out.println("Violation ID does not exist. Please try again.");
+            }
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input. Please enter a numeric Violation ID.");
+            sc.next();  
         }
     }
 
-    System.out.print("Are you sure you want to delete the violation with ID " + vid + "? (Yes/No): ");
-    String confirmation = sc.nextLine().trim();
-
-    while (!confirmation.equalsIgnoreCase("Yes") && !confirmation.equalsIgnoreCase("No")) {
-        System.out.println("Invalid response. Please enter 'Yes' or 'No'.");
-        System.out.print("Are you sure you want to delete the violation with ID " + vid + "? (Yes/No): ");
-        confirmation = sc.nextLine().trim();
+    String confirmation = "";
+    while (true) {
+        try {
+            System.out.print("Are you sure you want to delete " + vid + "? (Yes/No): ");
+            confirmation = sc.nextLine().trim();
+            if (confirmation.equalsIgnoreCase("Yes") || confirmation.equalsIgnoreCase("No")) {
+                break;  
+            } else {
+                throw new IllegalArgumentException("Invalid response. Please enter 'Yes' or 'No'.");
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     if (confirmation.equalsIgnoreCase("Yes")) {
-        String qry = "DELETE FROM violate WHERE v_id = ?";
+        try {
+            String qry = "DELETE FROM violate WHERE v_id = ?";
+            config conf = new config();
+            conf.deleteRecord(qry, vid);
 
-        config conf = new config();
-        conf.deleteRecord(qry, vid);
-
-        System.out.println("Violation with ID " + vid + " has been deleted successfully.");
+            System.out.println("Violation with ID " + vid + " has been deleted successfully.");
+        } catch (Exception e) {
+            System.out.println("Error while deleting violation: " + e.getMessage());
+        }
     } else {
         System.out.println("Deletion canceled.");
     }
 }
 
-    private boolean isViolationsIdExists(int vid) {
-        String query = "SELECT v_id FROM violate WHERE v_id = ?";
-        try (Connection conn = config.connectDB();  
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, vid);  
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return true;
-            } else {
-                return false;  
-            }
-        } catch (SQLException e) {
-            System.out.println("Error checking Violation ID: " + e.getMessage());
-            return false;  
-        }
-        }
+private boolean isViolationsIdExists(int vid) {
+    String query = "SELECT v_id FROM violate WHERE v_id = ?";
+    try (Connection conn = config.connectDB();
+         PreparedStatement stmt = conn.prepareStatement(query)) {
+        stmt.setInt(1, vid);
+        ResultSet rs = stmt.executeQuery();
+        return rs.next(); 
+    } catch (SQLException e) {
+        System.out.println("Error checking Violation ID: " + e.getMessage());
+        return false;
+    }
+}
 
-    
-    
     //Sa addViolation ni dli mogana basta wla ni
     
     public boolean isDriverIdExists(int driverId) {

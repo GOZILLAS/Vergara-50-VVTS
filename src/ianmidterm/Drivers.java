@@ -168,15 +168,21 @@ public class Drivers {
     int id;
 
     while (true) {
-        System.out.print("Enter ID to Update: ");
-        id = sc.nextInt();
-        sc.nextLine();  
-        if (isDriverIdExists(id)) {
-            break;  
-        } else {
-            System.out.println("Driver ID does not exist. Please enter a valid ID.");
+        try {
+            System.out.print("Enter ID to Update: ");
+            id = sc.nextInt();
+            sc.nextLine(); 
+            if (isDriverIdExists(id)) {
+                break;  
+            } else {
+                System.out.println("Driver ID does not exist. Please enter a valid ID.");
+            }
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input. Please enter a numeric ID.");
+            sc.next();  
         }
-    }    
+    }
+    
     String nfname = "";
     while (true) {
         System.out.print("Driver New First Name: ");
